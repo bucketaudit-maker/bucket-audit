@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Exposure Monitor read-only role for S3 posture checks (authorized-only)
+Parameters:
+  TrustedAccountId:
+    Type: String
+    Description: Your SaaS AWS account ID (where the scanner runs)
+  ExternalId:
+    Type: String
+    Default: ""
+Resources:
+  ExposureMonitorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ExposureMonitorReadOnly
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${TrustedAccountId}:root"
+            Action: "sts:AssumeRole"
+            Condition:
+              StringEquals:
+                "sts:ExternalId": !Ref ExternalId
+      Policies:
+        - PolicyName: ExposureMonitorS3ReadOnly
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:ListAllMyBuckets"
+                  - "s3:GetBucketLocation"
+                  - "s3:GetBucketAcl"
+                  - "s3:GetBucketPolicyStatus"
+                  - "s3:GetPublicAccessBlock"
+                  - "s3:GetBucketWebsite"
+                Resource: "*"
