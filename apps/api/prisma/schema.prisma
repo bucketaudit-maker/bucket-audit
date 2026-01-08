@@ -1,63 +1,71 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
   users     User[]
   accounts  CloudAccount[]
   buckets   Bucket[]
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   orgId     String
-  email     String   @unique
+  email     String       @unique
   password  String
-  role      String   @default("admin") // admin|viewer
-  createdAt DateTime @default(now())
+  role      String       @default("admin") // admin|viewer
+  createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id])
 }
 
 model CloudAccount {
-  id            String   @id @default(cuid())
-  orgId         String
-  provider      String   // "aws"
-  displayName   String
-  externalId    String?
-  roleArn       String
-  regionHint    String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  org           Organization @relation(fields: [orgId], references: [id])
-  buckets       Bucket[]
+  id          String       @id @default(cuid())
+  orgId       String
+  provider    String // "aws"
+  displayName String
+  externalId  String?
+  roleArn     String
+  regionHint  String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  org         Organization @relation(fields: [orgId], references: [id])
+  buckets     Bucket[]
 }
 
 model Bucket {
-  id          String   @id @default(cuid())
-  orgId       String
-  accountId   String
-  name        String
-  region      String?
-  tagsJson    Json?
-  lastSeenAt  DateTime @default(now())
-  createdAt   DateTime @default(now())
-  org         Organization @relation(fields: [orgId], references: [id])
-  account     CloudAccount @relation(fields: [accountId], references: [id])
-  findings    Finding[]
+  id         String       @id @default(cuid())
+  orgId      String
+  accountId  String
+  name       String
+  region     String?
+  tagsJson   Json?
+  lastSeenAt DateTime     @default(now())
+  createdAt  DateTime     @default(now())
+  org        Organization @relation(fields: [orgId], references: [id])
+  account    CloudAccount @relation(fields: [accountId], references: [id])
+  findings   Finding[]
+
   @@unique([accountId, name], name: "accountId_name")
 }
 
 model Finding {
-  id         String   @id @default(cuid())
-  bucketId   String
-  severity   String   // low|med|high|critical
-  type       String   // PUBLIC_BUCKET, PUBLIC_ACL, BPA_DISABLED, WEBSITE_PUBLIC, POLICY_PUBLIC
-  status     String   @default("open") // open|resolved|ignored
-  details    Json
-  firstSeen  DateTime @default(now())
-  lastSeen   DateTime @default(now())
-  bucket     Bucket   @relation(fields: [bucketId], references: [id])
+  id        String   @id @default(cuid())
+  bucketId  String
+  severity  String // low|med|high|critical
+  type      String // PUBLIC_ACL, BPA_DISABLED, WEBSITE_PUBLIC, POLICY_PUBLIC
+  status    String   @default("open") // open|resolved|ignored
+  details   Json
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @default(now())
+  bucket    Bucket   @relation(fields: [bucketId], references: [id])
+
   @@index([type, severity, status])
 }
